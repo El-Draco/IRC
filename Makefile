@@ -16,8 +16,8 @@ CXXFLAGS	=	-Wall -Wextra -Werror
 all:		$(NAME)
 
 $(NAME):	$(SERV_OBJS) $(CLI_OBJS)
-			${CC} ${CFLAGS} $(SERV_OBJS) -o irc_server
-			${CC} ${CFLAGS} $(CLI_OBJS) -o irc_client
+			${CXX} ${CXXFLAGS} $(SERV_OBJS) -o irc_server
+			${CXX} ${CXXFLAGS} $(CLI_OBJS) -o irc_client
 
 clean:
 			${RM} $(SERV_OBJS) $(CLI_OBJS) irc_client irc_server
