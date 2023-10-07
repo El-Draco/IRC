@@ -11,7 +11,7 @@ BIN_DIR = bin
 OBJ_DIR = obj
 
 #relative to their respective directories
-SERV_SRCS	=	server.cpp main_server.cpp
+SERV_SRCS	=	User.cpp server.cpp main_server.cpp
 CLI_SRCS	=	client.cpp main_client.cpp
 
 SERV_SRCS := ${addprefix server/, ${SERV_SRCS}}
