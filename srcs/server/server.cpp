@@ -1,4 +1,6 @@
 #include "../../inc/server/server.hpp"
+#include <arpa/inet.h>
+#include <cstring>
 #include <functional>
 #include <iostream>
 #include <mutex>
@@ -6,7 +8,7 @@
 #include <ostream>
 #include <string>
 #include <sys/socket.h>
-#include <thread>
+#include <unistd.h>
 
 using namespace std;
 
@@ -54,7 +56,7 @@ void server::recieveConnections() {
     }
 
     clientSockets.push_back(clientSocket);
-    thread clientThread(
+    std::thread clientThread(
         [clientSocket, this]() { this->clientHandler(clientSocket); });
     clientThreads.push_back(std::move(clientThread));
   }
@@ -79,5 +81,34 @@ void server::broadcastHandler() {
 void server::clientHandler(int clientSocket) {
   // listen for register/login
   //  when logged in, listen for messages, and add to queue
-  cout << "new client handler " << clientSocket;
+  char message[2048];
+  cout << "new client handler " << clientSockets.size() << endl;
+
+  while (true) {
+    memset(message, 0, sizeof(message));
+    if (recv(clientSocket, message, sizeof(message), 0) <= 0) {
+      // client is disconnected
+      close(clientSocket);
+      {
+        std::lock_guard<std::mutex> lock(bufferMutex);
+        clientSockets.erase(std::remove(clientSockets.begin(),
+                                        clientSockets.end(), clientSocket),
+                            clientSockets.end());
+      }
+      break;
+    }
+
+    // if user not registered, login or register
+    if (userSocketMap.find(clientSocket) == nullptr) {
+    }
+    // user is registered, push message to queue
+    else {
+      std::lock_guard<std::mutex> lock(bufferMutex);
+      messageBuffer.push(message);
+      bufferCV.notify_all();
+    }
+
+    cout << message << endl;
+  }
 }
+

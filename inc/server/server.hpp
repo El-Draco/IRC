@@ -14,9 +14,12 @@
 #include <unordered_map>
 #include <vector>
 
+using namespace std;
+
 class server {
 public:
   std::unordered_map<std::string, User> user_map;
+  std::unordered_map<int, User *> userSocketMap;
 
   void clientHandler(int clientSocket);
   void broadcastHandler();
@@ -40,10 +43,6 @@ private:
   std::thread broadcastThread;
 
   int handleMessage(std::string message);
-
-  bool login(std::string username, std::string password, int clientSocket);
-  bool registerUser(std::string username, std::string password,
-                    int clientSocket);
 };
 
 #endif
