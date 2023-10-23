@@ -10,105 +10,113 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+
 using namespace std;
 
-server::server(int port) {
-  serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-  if (serverSocket < 0) {
-    cerr << "Error in socket creation" << endl;
-    exit(1);
-  }
+Server::Server(std::string ipAddress, int port) : serverSocket(ipAddress, port)
+{
+	serverSocket.startConnection();
+	serverSocket.startListening();
 
-  serverAddr.sin_family = AF_INET;
-  serverAddr.sin_port = htons(port);
-  serverAddr.sin_addr.s_addr = INADDR_ANY;
+	broadcastThread = thread(&Server::broadcastHandler, this);
 
-  if (bind(serverSocket, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) <
-      0) {
-    cerr << "Error in binding" << endl;
-    exit(1);
-  }
-
-  if (listen(serverSocket, 5) == 0) {
-    cout << "Listening to port" << endl;
-  }
-
-  broadcastThread = thread(&server::broadcastHandler, this);
-
-  // read from config file: channel list
-  //
-  running = true;
+	// read from config file: channel list
+	//
+	running = true;
 }
 
-void server::recieveConnections() {
-  while (running) {
-    cout << "recieve connections cycle" << endl;
-    int clientSocket;
-    struct sockaddr_in clientAddr;
-    socklen_t addrSize = sizeof(clientAddr);
+/**
+ * @brief		Recieve any incoming data from established socket connections
+ * 
+ */
+void Server::recieveConnections() {
+	while (running)
+	{
+		// cout << "recieve connections cycle" << endl;
+		int clientSocket = serverSocket.acceptConnection();
 
-    clientSocket =
-        accept(serverSocket, (struct sockaddr *)&clientAddr, &addrSize);
+		if (clientSocket < 0) {
+			// cerr << "Error in accepting client connection" << endl;
+			continue;
+		}
 
-    if (clientSocket < 0) {
-      cerr << "Error in accepting client connection" << endl;
-      continue;
-    }
-
-    clientSockets.push_back(clientSocket);
-    std::thread clientThread(
-        [clientSocket, this]() { this->clientHandler(clientSocket); });
-    clientThreads.push_back(std::move(clientThread));
-  }
+		clientSockets.push_back(clientSocket);
+		std::thread clientThread(
+			[clientSocket, this]()
+			{ this->clientHandler(clientSocket); });
+		clientThreads.push_back(std::move(clientThread));
+	}
 }
 
-void server::broadcastHandler() {
-  while (true) {
-    string message;
-    {
-      cout << "broadcast handler cycle" << endl;
-      unique_lock<mutex> lock(bufferMutex);
-      bufferCV.wait(lock, [this] { return !this->messageBuffer.empty(); });
-      message = messageBuffer.front();
-      messageBuffer.pop();
-    }
+/**
+ * @brief		Broadcast a message to the channel by popping from the message queue
+ * 				to each channel user. Direct messages are not broadcasted through here
+ * 
+ */
+void Server::broadcastHandler() {
+	
+	// cout << "broadcast handler cycle" << endl;
+	while (true) {
+		string message;
+		{
+			unique_lock<mutex> lock(bufferMutex);
+			bufferCV.wait(lock, [this]
+						  { return !this->messageBuffer.empty(); });
+			message = messageBuffer.front();
+			messageBuffer.pop();
+			for (int socket : clientSockets)
+			{
+				send(socket, message.c_str(), message.size(), 0);
+			}
+		}
 
-    // do something with the message
-    // probably call some abstraction to send the message to relevant users
-  }
+		// do something with the message
+		// probably call some abstraction to send the message to relevant users
+	}
 }
 
-void server::clientHandler(int clientSocket) {
-  // listen for register/login
-  //  when logged in, listen for messages, and add to queue
-  char message[2048];
-  cout << "new client handler " << clientSockets.size() << endl;
+void Server::clientHandler(int clientSocket) {
+	// listen for register/login
+	//  when logged in, listen for messages, and add to queue
+	// char message[2048];
+	cout << "New client handler " << clientSockets.size() << endl;
+	(void) clientSocket;
+	std::string message;
+	while (true)
+	{
+		std::cout<<"Enter message: ";
+		std::cin >> message;
+		{
+			std::lock_guard<std::mutex> lock(bufferMutex);
+			messageBuffer.push(message);
+			bufferCV.notify_all();
+		}
+		// memset(message, 0, sizeof(message));
+		// if (recv(clientSocket, message, sizeof(message), 0) <= 0)
+		// {
+		// 	// client is disconnected
+		// 	close(clientSocket);
+		// 	{
+		// 		std::lock_guard<std::mutex> lock(bufferMutex);
+		// 		clientSockets.erase(std::remove(clientSockets.begin(),
+		// 										clientSockets.end(), clientSocket),
+		// 							clientSockets.end());
+		// 	}
+		// 	break;
+		// }
 
-  while (true) {
-    memset(message, 0, sizeof(message));
-    if (recv(clientSocket, message, sizeof(message), 0) <= 0) {
-      // client is disconnected
-      close(clientSocket);
-      {
-        std::lock_guard<std::mutex> lock(bufferMutex);
-        clientSockets.erase(std::remove(clientSockets.begin(),
-                                        clientSockets.end(), clientSocket),
-                            clientSockets.end());
-      }
-      break;
-    }
+		// string message = serverSocket.recieveData(clientSocket);
 
-    // if user not registered, login or register
-    if (userSocketMap.find(clientSocket) == nullptr) {
-    }
-    // user is registered, push message to queue
-    else {
-      std::lock_guard<std::mutex> lock(bufferMutex);
-      messageBuffer.push(message);
-      bufferCV.notify_all();
-    }
+		// if user not registered, login or register
+		// if (userSocketMap.find(clientSocket) == nullptr) {
+		// }
+		// user is registered, push message to queue
+		// else {
+		// 	std::lock_guard<std::mutex> lock(bufferMutex);
+		// 	messageBuffer.push(message);
+		// 	bufferCV.notify_all();
+		// }
 
-    cout << message << endl;
-  }
+		// cout << message << endl;
+	}
 }
-

@@ -6,17 +6,19 @@
 #include <condition_variable>
 #include <mutex>
 #include <netinet/in.h>
-#include <openssl/rsa.h>
+// #include <openssl/rsa.h>
 #include <queue>
 #include <string>
 #include <sys/socket.h>
 #include <thread>
 #include <unordered_map>
 #include <vector>
+#include "../../inc/TCPSocket.hpp"
+
 
 using namespace std;
 
-class server {
+class Server {
 public:
   std::unordered_map<std::string, User> user_map;
   std::unordered_map<int, User *> userSocketMap;
@@ -27,20 +29,18 @@ public:
 
   std::vector<channel> channelList;
 
-  server(int port);
+  Server(string ipAddress, int port);
 
   bool running = false;
 
-private:
-  struct sockaddr_in serverAddr;
-  int serverSocket;
-  std::vector<int> clientSockets;
-  std::vector<std::thread> clientThreads;
-  std::queue<std::string> messageBuffer;
-  std::mutex bufferMutex;
-  std::condition_variable bufferCV;
-
-  std::thread broadcastThread;
+protected:
+  TCPSocket                 serverSocket;
+  std::vector<int>          clientSockets;
+  std::vector<std::thread>  clientThreads;
+  std::queue<std::string>   messageBuffer;
+  std::mutex                bufferMutex;
+  std::condition_variable   bufferCV;
+  std::thread               broadcastThread;
 
   int handleMessage(std::string message);
 };
