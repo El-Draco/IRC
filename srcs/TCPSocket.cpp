@@ -51,6 +51,7 @@ std::string TCPSocket::recieveData(int peerSocket) {
   if (bytesRecieved <= 0)
     throw "Client Disconnected";
 
+  // Should not be here, this is shared
   std::ostringstream ss;
   ss << "------ Received Request from client ------\n\n";
   std::cout << std::string(buffer) << "\n";

@@ -5,20 +5,17 @@
 #include <string>
 using namespace std;
 
-class Client
-{
+class Client {
 private:
-    TCPSocket clientSocket;
+  TCPSocket clientSocket;
+
 public:
-    Client(string ipAddress, int port);
-    ~Client();
+  Client(string ipAddress, int port);
+  ~Client();
 
-    int getClientSocket();
-    void sendMessage(string message);
-
+  int getClientSocket();
+  void sendMessage(string message);
+  string recieveMessage();
 };
-
-
-
 
 #endif

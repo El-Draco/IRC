@@ -1,31 +1,40 @@
+#include "../../inc/client/client.hpp"
 #include <arpa/inet.h>
 #include <iostream>
 #include <netinet/in.h>
-#include <sys/socket.h>
 #include <string.h>
-#include "../../inc/client/client.hpp"
+#include <string>
+#include <sys/socket.h>
+#include <thread>
 using namespace std;
 
-int main(int argc, char *argv[])
-{
-    if (argc < 3)
-    {
-        cerr << "Error: not enough arguements" << endl;
-        cerr << "Usage: irc_client [server address] [port number]" << endl;
-        exit(1);
-    }
+void receiveMessages(Client *c1) {
+  string message;
+  while (true) {
+    message = c1->recieveMessage();
+    std::cout << "\nReceived: " << message << std::endl;
+  }
+}
 
-    string ip = argv[1];
-    int port = atoi(argv[2]);
+int main(int argc, char *argv[]) {
+  if (argc < 3) {
+    cerr << "Error: not enough arguements" << endl;
+    cerr << "Usage: irc_client [server address] [port number]" << endl;
+    exit(1);
+  }
 
-    Client c1(ip, port);
-    
-    char buff[1024];
-    while (2)
-    {
-        memset(buff, 0, sizeof(buff));
-        recv(c1.getClientSocket(), buff, 1024, 0);
-        std::cout << "recieved: "<< buff << endl;
-    }
-    return 0;
+  string ip = argv[1];
+  int port = atoi(argv[2]);
+
+  Client c1(ip, port);
+
+  std::thread receiveThread(receiveMessages, &c1);
+
+  string message;
+  while (2) {
+    std::cout << "Enter a message: ";
+    getline(cin, message);
+    c1.sendMessage(message);
+  }
+  return 0;
 }
