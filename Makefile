@@ -11,7 +11,7 @@ BIN_DIR = bin
 OBJ_DIR = obj
 
 #relative to their respective directories
-SERV_SRCS	=	User.cpp server.cpp server_main.cpp ../TCPSocket.cpp
+SERV_SRCS	=	User.cpp commands.cpp server.cpp server_main.cpp ../TCPSocket.cpp
 CLI_SRCS	=	client.cpp client_main.cpp ../TCPSocket.cpp
 
 SERV_SRCS := ${addprefix server/, ${SERV_SRCS}}

@@ -7,14 +7,13 @@
 #include <mutex>
 #include <netinet/in.h>
 // #include <openssl/rsa.h>
+#include "../../inc/TCPSocket.hpp"
 #include <queue>
 #include <string>
 #include <sys/socket.h>
 #include <thread>
 #include <unordered_map>
 #include <vector>
-#include "../../inc/TCPSocket.hpp"
-
 
 using namespace std;
 
@@ -26,6 +25,7 @@ public:
   void clientHandler(int clientSocket);
   void broadcastHandler();
   void recieveConnections();
+  int handleUnLoggedIn(std::string message, int clientSocket);
 
   std::vector<channel> channelList;
 
@@ -34,15 +34,19 @@ public:
   bool running = false;
 
 protected:
-  TCPSocket                 serverSocket;
-  std::vector<int>          clientSockets;
-  std::vector<std::thread>  clientThreads;
-  std::queue<std::string>   messageBuffer;
-  std::mutex                bufferMutex;
-  std::condition_variable   bufferCV;
-  std::thread               broadcastThread;
+  TCPSocket serverSocket;
+  std::vector<int> clientSockets;
+  std::vector<std::thread> clientThreads;
+  std::queue<std::string> messageBuffer;
+  std::mutex bufferMutex;
+  std::condition_variable bufferCV;
+  std::thread broadcastThread;
 
   int handleMessage(std::string message);
+  void sendMessage(std::string message, int clientSocket);
+  void closeConnection(int clientSocket);
+
+  const string motd = "Login using /login [username] [password]\n";
 };
 
 #endif

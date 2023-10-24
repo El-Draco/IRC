@@ -9,14 +9,10 @@ class User {
 public:
   std::string name;
   Role role;
-  void sendMessage(std::string message);
+  int clientSocket;
 
   User();
-  User(std::string username, char *_pub_key, long _pub_key_len);
-
-private:
-  char *pub_key;
-  long pub_key_len;
+  User(std::string _username, int _clientSocket);
 };
 
 #endif
