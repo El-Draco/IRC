@@ -3,16 +3,22 @@
 
 #include <string>
 
-enum Role { ADMIN, MODERATOR, USER };
+enum Role
+{
+    ADMIN,
+    MODERATOR,
+    USER
+};
 
-class User {
+class User
+{
 public:
-  std::string name;
-  Role role;
-  int clientSocket;
+    std::string name;
+    Role role;
+    int clientSocket;
 
-  User();
-  User(std::string _username, int _clientSocket);
+    User();
+    User(std::string _username, int _clientSocket);
 };
 
 #endif

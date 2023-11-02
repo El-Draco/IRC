@@ -1,25 +1,25 @@
 #ifndef TCP_SOCKET_HPP
 #define TCP_SOCKET_HPP
 
-# include	<iostream>
-# include	<string.h>
-# include   <vector>
-# include	<string>
-# include	<sstream>
-# include	<sys/socket.h>
-# include	<sys/un.h>
-# include	<arpa/inet.h>
-# include	<fstream>
-# include	<unistd.h>
-# include <fcntl.h>
+#include <iostream>
+#include <string.h>
+#include <vector>
+#include <string>
+#include <sstream>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <arpa/inet.h>
+#include <fstream>
+#include <unistd.h>
+#include <fcntl.h>
 #define BUFFER_SIZE 20000
 
-class TCPSocket {
+class TCPSocket
+{
 protected:
 	std::string ip_address;
 	int port;
 	int passiveSocket;
-	// int peer_socket;
 	struct sockaddr_in socket_address;
 	unsigned int socket_address_len;
 
@@ -33,7 +33,6 @@ public:
 	void sendData(int peerSocket, std::string message);
 	std::string recieveData(int peerSocket);
 
-
 	void startConnection();
 	void startListening();
 	int acceptConnection();
@@ -41,7 +40,6 @@ public:
 	int connectToSocket();
 
 	const int &getPassiveSocket();
-
 
 	class SocketIOError : public std::exception
 	{

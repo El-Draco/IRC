@@ -1,15 +1,16 @@
-#ifndef message_hpp
-#define message_hpp
+#ifndef MESSAGE_HPP
+#define MESSAGE_HPP
 
 #include <cstddef>
 #include <string>
 
-class message {
+class Message
+{
 public:
-  std::string sender;
-  std::string message;
-  std::string channel;
-  std::size_t timestamp;
+    std::string sender;
+    std::string message;
+    std::string channel;
+    std::size_t timestamp;
 };
 
-#endif // !message_hpp
+#endif

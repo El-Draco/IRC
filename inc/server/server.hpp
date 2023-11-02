@@ -17,36 +17,37 @@
 
 using namespace std;
 
-class Server {
+class Server
+{
 public:
-  std::unordered_map<std::string, User> user_map;
-  std::unordered_map<int, User *> userSocketMap;
+    std::unordered_map<std::string, User> user_map;
+    std::unordered_map<int, User *> userSocketMap;
 
-  void clientHandler(int clientSocket);
-  void broadcastHandler();
-  void recieveConnections();
-  int handleUnLoggedIn(std::string message, int clientSocket);
+    void clientHandler(int clientSocket);
+    void broadcastHandler();
+    void recieveConnections();
+    int handleUnLoggedIn(std::string message, int clientSocket);
 
-  std::vector<channel> channelList;
+    std::vector<Channel> channelList;
 
-  Server(string ipAddress, int port);
+    Server(string ipAddress, int port);
 
-  bool running = false;
+    bool running = false;
 
 protected:
-  TCPSocket serverSocket;
-  std::vector<int> clientSockets;
-  std::vector<std::thread> clientThreads;
-  std::queue<std::string> messageBuffer;
-  std::mutex bufferMutex;
-  std::condition_variable bufferCV;
-  std::thread broadcastThread;
+    TCPSocket serverSocket;
+    std::vector<int> clientSockets;
+    std::vector<std::thread> clientThreads;
+    std::queue<std::string> messageBuffer;
+    std::mutex bufferMutex;
+    std::condition_variable bufferCV;
+    std::thread broadcastThread;
 
-  int handleMessage(std::string message);
-  void sendMessage(std::string message, int clientSocket);
-  void closeConnection(int clientSocket);
+    int handleMessage(std::string message);
+    void sendMessage(std::string message, int clientSocket);
+    void closeConnection(int clientSocket);
 
-  const string motd = "Login using /login [username] [password]\n";
+    const string motd = "Login using /login [username] [password]\n";
 };
 
 #endif

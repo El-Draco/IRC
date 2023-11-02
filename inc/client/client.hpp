@@ -3,19 +3,21 @@
 
 #include "../TCPSocket.hpp"
 #include <string>
+#include <thread>
 using namespace std;
 
-class Client {
+class Client
+{
 private:
-  TCPSocket clientSocket;
+    TCPSocket clientSocket;
 
 public:
-  Client(string ipAddress, int port);
-  ~Client();
+    Client(string ipAddress, int port);
+    ~Client();
 
-  int getClientSocket();
-  void sendMessage(string message);
-  string recieveMessage();
+    int getClientSocket();
+    void sendMessage(string message);
+    string recieveMessage();
 };
 
 #endif

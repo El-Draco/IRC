@@ -1,14 +1,15 @@
-#ifndef channel_hpp
-#define channel_hpp
+#ifndef CHANNEL_HPP
+#define CHANNEL_HPP
 
 #include "User.hpp"
 #include <string>
 #include <vector>
 
-class channel {
+class Channel
+{
 public:
-  std::string name;
-  std::vector<User *> participants;
+    std::string name;
+    std::vector<User *> participants;
 };
 
-#endif // !DEBUG
+#endif
