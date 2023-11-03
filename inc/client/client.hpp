@@ -6,12 +6,11 @@
 #include <thread>
 using namespace std;
 
-class Client
-{
-private:
+class Client {
+  private:
     TCPSocket clientSocket;
 
-public:
+  public:
     Client(string ipAddress, int port);
     ~Client();
 

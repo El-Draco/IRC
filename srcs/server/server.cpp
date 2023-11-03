@@ -19,8 +19,7 @@ using namespace std;
  * @param port         Port to bind server to
  */
 Server::Server(std::string ipAddress, int port)
-    : serverSocket(ipAddress, port)
-{
+    : serverSocket(ipAddress, port) {
     serverSocket.startConnection();
     serverSocket.startListening();
 
@@ -35,22 +34,18 @@ Server::Server(std::string ipAddress, int port)
  * connections
  *
  */
-void Server::recieveConnections()
-{
-    while (running)
-    {
+void Server::recieveConnections() {
+    while (running) {
         cout << "Recieved connection " << clientSockets.size() << endl;
         int clientSocket = serverSocket.acceptConnection();
 
-        if (clientSocket < 0)
-        {
+        if (clientSocket < 0) {
             continue;
         }
 
         clientSockets.push_back(clientSocket);
         std::thread clientThread(
-            [clientSocket, this]()
-            { this->clientHandler(clientSocket); });
+            [clientSocket, this]() { this->clientHandler(clientSocket); });
         clientThreads.push_back(std::move(clientThread));
     }
 }
@@ -61,21 +56,18 @@ void Server::recieveConnections()
  * through here
  *
  */
-void Server::broadcastHandler()
-{
-    while (true)
-    {
+void Server::broadcastHandler() {
+    while (true) {
         string message;
         {
             unique_lock<mutex> lock(bufferMutex);
-            bufferCV.wait(lock, [this]
-                          { return !this->messageBuffer.empty(); });
+            bufferCV.wait(lock,
+                          [this] { return !this->messageBuffer.empty(); });
             message = messageBuffer.front();
             messageBuffer.pop();
         }
 
-        for (int socket : clientSockets)
-        {
+        for (int socket : clientSockets) {
             sendMessage(message, socket);
         }
 
@@ -85,37 +77,34 @@ void Server::broadcastHandler()
 }
 
 /**
- * @brief       Thread handler to receive incoming messages from clients and push to the message queue
+ * @brief       Thread handler to receive incoming messages from clients and
+ * push to the message queue
  *
  * @param clientSocket Socket file descriptor of the client
  */
-void Server::clientHandler(int clientSocket)
-{
+void Server::clientHandler(int clientSocket) {
     // listen for register/login
     //  when logged in, listen for messages, and add to queue
     (void)clientSocket;
     send(clientSocket, motd.c_str(), strlen(motd.c_str()), 0);
     std::string message;
-    while (true)
-    {
-        try
-        {
+    while (true) {
+        try {
             message = serverSocket.recieveData(clientSocket);
         }
         // TODO: Add proper catch
-        catch (...)
-        {
+        catch (...) {
             closeConnection(clientSocket);
             break;
         }
-        if (userSocketMap.find(clientSocket) == nullptr)
-        {
+        if (userSocketMap.find(clientSocket) == nullptr) {
             handleUnLoggedIn(message, clientSocket);
         }
         // user is registered, push message to queue
-        else
-        {
+        else {
             std::lock_guard<std::mutex> lock(bufferMutex);
+            string username = userSocketMap.at(clientSocket)->name;
+            message = username + ":" + message;
             messageBuffer.push(message);
             bufferCV.notify_all();
         }
@@ -128,8 +117,7 @@ void Server::clientHandler(int clientSocket)
  * @param message       Message to send
  * @param clientSocket  Socket file descriptor of client
  */
-void Server::sendMessage(string message, int clientSocket)
-{
+void Server::sendMessage(string message, int clientSocket) {
     send(clientSocket, message.c_str(), strlen(message.c_str()), 0);
 }
 
@@ -138,32 +126,30 @@ void Server::sendMessage(string message, int clientSocket)
  *
  * @param clientSocket  client socket fd to close
  */
-void Server::closeConnection(int clientSocket)
-{
+void Server::closeConnection(int clientSocket) {
     close(clientSocket);
     {
         std::lock_guard<std::mutex> lock(bufferMutex);
-        clientSockets.erase(
-            std::remove(clientSockets.begin(), clientSockets.end(), clientSocket),
-            clientSockets.end());
+        clientSockets.erase(std::remove(clientSockets.begin(),
+                                        clientSockets.end(), clientSocket),
+                            clientSockets.end());
+    }
+    if (userSocketMap.find(clientSocket) != nullptr) {
+        userSocketMap.erase(clientSocket);
     }
 }
 
-int Server::handleUnLoggedIn(std::string message, int clientSocket)
-{
+int Server::handleUnLoggedIn(std::string message, int clientSocket) {
     size_t spacePos = message.find(' ');
-    if (spacePos == std::string::npos)
-    {
+    if (spacePos == std::string::npos) {
         sendMessage("ERROR: You are not logged in!", clientSocket);
         return -1;
     }
     string command = message.substr(0, spacePos);
     string args = message.substr(spacePos + 1);
-    if (command == "/login")
-    {
+    if (command == "/login") {
         spacePos = args.find(' ');
-        if (spacePos == std::string::npos)
-        {
+        if (spacePos == std::string::npos) {
             return -1;
         }
         string username = args.substr(0, spacePos);
@@ -172,20 +158,15 @@ int Server::handleUnLoggedIn(std::string message, int clientSocket)
         user_map[username] = User(username, clientSocket);
         userSocketMap[clientSocket] = &user_map[username];
         return 1;
-    }
-    else if (command == "/register")
-    {
+    } else if (command == "/register") {
         return -1;
-    }
-    else
-    {
+    } else {
         sendMessage("ERROR: You are not logged in!", clientSocket);
         return -1;
     }
 }
 
-void checkPassword(string password, string passwordConfirm)
-{
+void checkPassword(string password, string passwordConfirm) {
     (void)password;
     (void)passwordConfirm;
 }

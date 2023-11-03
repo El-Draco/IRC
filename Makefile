@@ -2,7 +2,7 @@ SERV_NAME	=	irc_server
 CLI_NAME	=	irc_client
 
 CXX			=	c++
-CXXFLAGS	=	-Wall -Wextra
+CXXFLAGS	=	-Wall -Wextra -lncurses
 RM			=	rm
 INC 		= 	inc/
 
@@ -13,7 +13,7 @@ OBJ_DIR 	= obj
 #relative to their respective directories
 COMM_SRCS	= 	TCPSocket.cpp
 SERV_SRCS	=	User.cpp server.cpp server_main.cpp
-CLI_SRCS	=	client.cpp client_main.cpp
+CLI_SRCS	=	tui.cpp client.cpp client_main.cpp
 
 SERV_SRCS	:= ${addprefix server/, ${SERV_SRCS}}
 CLI_SRCS	:= ${addprefix client/, ${CLI_SRCS}}

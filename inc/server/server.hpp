@@ -17,9 +17,8 @@
 
 using namespace std;
 
-class Server
-{
-public:
+class Server {
+  public:
     std::unordered_map<std::string, User> user_map;
     std::unordered_map<int, User *> userSocketMap;
 
@@ -34,7 +33,7 @@ public:
 
     bool running = false;
 
-protected:
+  protected:
     TCPSocket serverSocket;
     std::vector<int> clientSockets;
     std::vector<std::thread> clientThreads;
@@ -47,7 +46,7 @@ protected:
     void sendMessage(std::string message, int clientSocket);
     void closeConnection(int clientSocket);
 
-    const string motd = "Login using /login [username] [password]\n";
+    const string motd = "SERVER:Login using /login [username] [password]";
 };
 
 #endif

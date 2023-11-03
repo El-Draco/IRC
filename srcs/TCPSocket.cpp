@@ -12,9 +12,9 @@ static void log(std::string mesg) { std::cout << mesg << std::endl; }
  *
  */
 TCPSocket::TCPSocket() {
-  socket_address.sin_family = AF_INET;
-  socket_address.sin_port = htons(port);
-  socket_address.sin_addr.s_addr = inet_addr(ip_address.c_str());
+    socket_address.sin_family = AF_INET;
+    socket_address.sin_port = htons(port);
+    socket_address.sin_addr.s_addr = inet_addr(ip_address.c_str());
 }
 
 /**
@@ -26,9 +26,9 @@ TCPSocket::TCPSocket() {
 TCPSocket::TCPSocket(std::string ip_addr, int port)
     : ip_address(ip_addr), port(port), passiveSocket(), socket_address(),
       socket_address_len(sizeof(socket_address)) {
-  socket_address.sin_family = AF_INET;
-  socket_address.sin_port = htons(port);
-  socket_address.sin_addr.s_addr = inet_addr(ip_address.c_str());
+    socket_address.sin_family = AF_INET;
+    socket_address.sin_port = htons(port);
+    socket_address.sin_addr.s_addr = inet_addr(ip_address.c_str());
 }
 
 TCPSocket::~TCPSocket() { close(passiveSocket); }
@@ -41,15 +41,15 @@ TCPSocket::~TCPSocket() { close(passiveSocket); }
  * @return std::string  Message receieved
  */
 std::string TCPSocket::recieveData(int peerSocket) {
-  long bytesRecieved;
-  char buffer[BUFFER_SIZE] = {0};
+    long bytesRecieved;
+    char buffer[BUFFER_SIZE] = {0};
 
-  // replace read with receieve
-  bytesRecieved = recv(peerSocket, buffer, BUFFER_SIZE, 0);
-  if (bytesRecieved <= 0)
-    throw "Client Disconnected";
+    // replace read with receieve
+    bytesRecieved = recv(peerSocket, buffer, BUFFER_SIZE, 0);
+    if (bytesRecieved <= 0)
+        throw "Client Disconnected";
 
-  return (std::string(buffer));
+    return (std::string(buffer));
 }
 
 /**
@@ -59,13 +59,12 @@ std::string TCPSocket::recieveData(int peerSocket) {
  * @param message       Data to be sent
  */
 void TCPSocket::sendData(int peerSocket, std::string message) {
-  size_t bytesSent;
-  // replace write with SEND function
-  const char *s = message.c_str();
-  std::cerr << message;
-  bytesSent = send(peerSocket, s, message.size(), 0);
-  if (bytesSent != message.size())
-    log("Error sending response to client");
+    size_t bytesSent;
+    // replace write with SEND function
+    const char *s = message.c_str();
+    bytesSent = send(peerSocket, s, message.size(), 0);
+    if (bytesSent != message.size())
+        log("Error sending response to client");
 }
 
 /**
@@ -73,18 +72,18 @@ void TCPSocket::sendData(int peerSocket, std::string message) {
  *
  */
 void TCPSocket::startConnection() {
-  passiveSocket = socket(AF_INET, SOCK_STREAM, 0);
+    passiveSocket = socket(AF_INET, SOCK_STREAM, 0);
 
-  if (passiveSocket < 0) {
-    log("Socket creation failed\n");
-    return;
-  }
-  if (bind(passiveSocket, (sockaddr *)&socket_address, socket_address_len) <
-      0) {
-    log("Cannot connect socket to address");
-    return;
-  }
-  std::cout << "Socket connection created and started succesfully!\n";
+    if (passiveSocket < 0) {
+        log("Socket creation failed\n");
+        return;
+    }
+    if (bind(passiveSocket, (sockaddr *)&socket_address, socket_address_len) <
+        0) {
+        log("Cannot connect socket to address");
+        return;
+    }
+    // std::cout << "Socket connection created and started succesfully!\n";
 }
 
 /**
@@ -92,13 +91,13 @@ void TCPSocket::startConnection() {
  *
  */
 void TCPSocket::startListening() {
-  if (listen(passiveSocket, 20) < 0) {
-    log("Socket listen failed\n");
-  }
-  std::ostringstream ss;
-  ss << "\n*** Listening on ADDRESS: " << inet_ntoa(socket_address.sin_addr)
-     << " PORT: " << ntohs(socket_address.sin_port) << " ***\n\n";
-  log(ss.str());
+    if (listen(passiveSocket, 20) < 0) {
+        log("Socket listen failed\n");
+    }
+    std::ostringstream ss;
+    ss << "\n*** Listening on ADDRESS: " << inet_ntoa(socket_address.sin_addr)
+       << " PORT: " << ntohs(socket_address.sin_port) << " ***\n\n";
+    log(ss.str());
 }
 
 /**
@@ -108,31 +107,31 @@ void TCPSocket::startListening() {
  * @return int
  */
 int TCPSocket::acceptConnection() {
-  int peerSocket =
-      accept(passiveSocket, (sockaddr *)&socket_address, &socket_address_len);
-  if (peerSocket < 0) {
-    std::ostringstream ss;
-    ss << "Server failed to accept incoming connection from ADDRESS: "
-       << inet_ntoa(socket_address.sin_addr)
-       << "; PORT: " << ntohs(socket_address.sin_port);
-    log(ss.str());
-  }
-  return (peerSocket);
+    int peerSocket =
+        accept(passiveSocket, (sockaddr *)&socket_address, &socket_address_len);
+    if (peerSocket < 0) {
+        std::ostringstream ss;
+        ss << "Server failed to accept incoming connection from ADDRESS: "
+           << inet_ntoa(socket_address.sin_addr)
+           << "; PORT: " << ntohs(socket_address.sin_port);
+        // log(ss.str());
+    }
+    return (peerSocket);
 }
 
 int TCPSocket::connectToSocket() {
-  passiveSocket = socket(AF_INET, SOCK_STREAM, 0);
+    passiveSocket = socket(AF_INET, SOCK_STREAM, 0);
 
-  if (passiveSocket < 0) {
-    log("Socket creation failed\n");
-    return (-1);
-  }
-  if (connect(passiveSocket, (struct sockaddr *)&socket_address,
-              sizeof(socket_address)) < 0) {
-    std::cerr << "Error in connection" << std::endl;
-    return (-1);
-  }
-  return (0);
+    if (passiveSocket < 0) {
+        log("Socket creation failed\n");
+        return (-1);
+    }
+    if (connect(passiveSocket, (struct sockaddr *)&socket_address,
+                sizeof(socket_address)) < 0) {
+        std::cerr << "Error in connection" << std::endl;
+        return (-1);
+    }
+    return (0);
 }
 
 /**
@@ -156,5 +155,5 @@ const int &TCPSocket::getPassiveSocket() { return (passiveSocket); }
  * @return const char*
  */
 const char *TCPSocket::SocketIOError::what() const throw() {
-  return ("Socket IO error!\n");
+    return ("Socket IO error!\n");
 }
