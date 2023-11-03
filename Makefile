@@ -12,8 +12,8 @@ OBJ_DIR 	= obj
 
 #relative to their respective directories
 COMM_SRCS	= 	TCPSocket.cpp
-SERV_SRCS	=	User.cpp Server.cpp server_main.cpp
-CLI_SRCS	=	Client.cpp client_main.cpp
+SERV_SRCS	=	User.cpp server.cpp server_main.cpp
+CLI_SRCS	=	client.cpp client_main.cpp
 
 SERV_SRCS	:= ${addprefix server/, ${SERV_SRCS}}
 CLI_SRCS	:= ${addprefix client/, ${CLI_SRCS}}
@@ -27,7 +27,7 @@ CLI_OBJS	:= ${addprefix $(OBJ_DIR)/, ${CLI_OBJS}}
 COMM_OBJS	:= ${addprefix $(OBJ_DIR)/, ${COMM_OBJS}}
 
 
-all:	$(BIN_DIR)/$(SERV_NAME) $(BIN_DIR)/$(CLI_NAME) $(COMM_OBJS)
+all: setup $(BIN_DIR)/$(SERV_NAME) $(BIN_DIR)/$(CLI_NAME) $(COMM_OBJS)
 
 $(BIN_DIR)/$(SERV_NAME):	$(SERV_OBJS) $(COMM_OBJS)
 	${CXX} ${CXXFLAGS} $(SERV_OBJS) $(COMM_OBJS) -o $(BIN_DIR)/$(SERV_NAME)
@@ -43,6 +43,10 @@ clean:
 
 fclean:		clean
 	${RM} $(BIN_DIR)/*
+
+setup:
+	mkdir -p bin
+	mkdir -p obj/client obj/server
 	
 re:			fclean all
 
