@@ -6,8 +6,7 @@
  * @param ipAddress IP address of the server
  * @param port      Port number to connect to
  */
-Client::Client(string ipAddress, int port) : clientSocket(ipAddress, port)
-{
+Client::Client(string ipAddress, int port) : clientSocket(ipAddress, port) {
     clientSocket.connectToSocket();
 }
 
@@ -22,18 +21,14 @@ Client::~Client() {}
  *
  * @return int  socket file descriptor
  */
-int Client::getClientSocket()
-{
-    return (clientSocket.getPassiveSocket());
-}
+int Client::getClientSocket() { return (clientSocket.getPassiveSocket()); }
 
 /**
  * @brief           Send a message to other clients connected to the server
  *
  * @param message   Message to relay
  */
-void Client::sendMessage(string message)
-{
+void Client::sendMessage(string message) {
     clientSocket.sendData(clientSocket.getPassiveSocket(), message);
 }
 
@@ -42,16 +37,13 @@ void Client::sendMessage(string message)
  *
  * @return string   Message recieved from the server
  */
-string Client::recieveMessage()
-{
+string Client::recieveMessage() {
     string message;
-    try
-    {
+    try {
         message = clientSocket.recieveData(clientSocket.getPassiveSocket());
-    }
-    catch (...)
-    {
+    } catch (...) {
         cerr << "Server disconnected";
+        clientSocket.closeConnection(clientSocket.getPassiveSocket());
         exit(-1);
     }
     return message;

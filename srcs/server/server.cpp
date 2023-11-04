@@ -22,6 +22,7 @@ using namespace std;
  */
 Server::Server(std::string ipAddress, int port)
     : serverSocket(ipAddress, port) {
+    initCommands();
     serverSocket.startConnection();
     serverSocket.startListening();
 
@@ -101,6 +102,8 @@ void Server::clientHandler(int clientSocket) {
         }
         if (userSocketMap.find(clientSocket) == nullptr) {
             handleUnLoggedIn(message, clientSocket);
+        } else if (checkCommand(message)) {
+            handleCommand(message, clientSocket);
         }
         // user is registered, push message to queue
         else {
@@ -113,6 +116,12 @@ void Server::clientHandler(int clientSocket) {
     }
 }
 
+/**
+ * @brief               Format a message into Message object
+ *
+ * @param message       The message content
+ * @param username      The username of the sender
+ */
 Message Server::formatMessage(string message, string username) {
     Message formattedMessage;
     formattedMessage.content = message;
@@ -180,7 +189,8 @@ int Server::handleUnLoggedIn(std::string message, int clientSocket) {
         user_map[username] = User(username, clientSocket);
         userSocketMap[clientSocket] = &user_map[username];
         channelList[0].participants.push_back(&user_map[username]);
-        sendMessage("SERVER:You have successfully logged in", clientSocket);
+        sendMessage("SERVER:You have successfully logged in\n", clientSocket);
+        handleCommand("/help ", clientSocket);
         return 1;
     } else if (command == "/register") {
         return -1;
@@ -193,4 +203,38 @@ int Server::handleUnLoggedIn(std::string message, int clientSocket) {
 void checkPassword(string password, string passwordConfirm) {
     (void)password;
     (void)passwordConfirm;
+}
+
+void Server::initCommands() {
+    commandMap["/help"] = [this](string, int clientSocket) {
+        sendMessage("SERVER:Help:\n"
+                    "/help : Prints this help message\n"
+                    "/channels : Prints the available channels to join\n"
+                    "/join [channel] : Joins the specified channel",
+                    clientSocket);
+    };
+    commandMap["/channels"] = [this](string, int clientSocket) {
+        string channels = "SERVER: Channel List:\n";
+        for (auto c : channelList) {
+            channels += "[" + c.name + "]\n";
+        }
+        sendMessage(channels, clientSocket);
+    };
+}
+
+bool Server::checkCommand(string message) {
+    size_t spacePos = message.find(' ');
+    string command = message.substr(0, spacePos);
+    cout << command;
+    return commandMap.find(command) != nullptr;
+};
+
+void Server::handleCommand(string message, int clientSocket) {
+    size_t spacePos = message.find(' ');
+    string command = message.substr(0, spacePos);
+    string args = message.substr(spacePos + 1);
+    if (commandMap.find(command) != nullptr) {
+        commandMap[command](args, clientSocket);
+    } else
+        sendMessage("ERROR: Invalid command", clientSocket);
 }

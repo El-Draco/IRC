@@ -5,6 +5,7 @@
 #include "channel.hpp"
 #include <bits/types/time_t.h>
 #include <condition_variable>
+#include <functional>
 #include <mutex>
 #include <netinet/in.h>
 // #include <openssl/rsa.h>
@@ -54,6 +55,11 @@ class Server {
     Message formatMessage(string message, string username);
     void sendMessage(std::string message, int clientSocket);
     void closeConnection(int clientSocket);
+
+    std::unordered_map<string, std::function<void(string, int)>> commandMap;
+    void initCommands();
+    bool checkCommand(string message);
+    void handleCommand(string message, int clientSocket);
 
     const string motd = "SERVER:Login using /login [username] [password]";
 };
