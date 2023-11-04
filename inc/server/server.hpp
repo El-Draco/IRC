@@ -3,6 +3,7 @@
 
 #include "User.hpp"
 #include "channel.hpp"
+#include <bits/types/time_t.h>
 #include <condition_variable>
 #include <mutex>
 #include <netinet/in.h>
@@ -16,6 +17,13 @@
 #include <vector>
 
 using namespace std;
+
+struct Message {
+    string content;
+    Channel *channel;
+    string sender;
+    time_t time;
+};
 
 class Server {
   public:
@@ -37,12 +45,13 @@ class Server {
     TCPSocket serverSocket;
     std::vector<int> clientSockets;
     std::vector<std::thread> clientThreads;
-    std::queue<std::string> messageBuffer;
+    std::queue<Message> messageBuffer;
     std::mutex bufferMutex;
     std::condition_variable bufferCV;
     std::thread broadcastThread;
 
     int handleMessage(std::string message);
+    Message formatMessage(string message, string username);
     void sendMessage(std::string message, int clientSocket);
     void closeConnection(int clientSocket);
 

@@ -1,6 +1,8 @@
 #include "../../inc/server/server.hpp"
+#include "../../inc/server/channel.hpp"
 #include <arpa/inet.h>
 #include <cstring>
+#include <ctime>
 #include <functional>
 #include <iostream>
 #include <mutex>
@@ -24,6 +26,8 @@ Server::Server(std::string ipAddress, int port)
     serverSocket.startListening();
 
     broadcastThread = thread(&Server::broadcastHandler, this);
+
+    channelList.push_back(Channel("general"));
 
     // read from config file: channel list
     running = true;
@@ -58,7 +62,7 @@ void Server::recieveConnections() {
  */
 void Server::broadcastHandler() {
     while (true) {
-        string message;
+        Message message;
         {
             unique_lock<mutex> lock(bufferMutex);
             bufferCV.wait(lock,
@@ -67,12 +71,10 @@ void Server::broadcastHandler() {
             messageBuffer.pop();
         }
 
-        for (int socket : clientSockets) {
-            sendMessage(message, socket);
+        for (auto c : message.channel->participants) {
+            sendMessage(message.sender + ":" + message.content,
+                        c->clientSocket);
         }
-
-        // do something with the message
-        // probably call some abstraction to send the message to relevant users
     }
 }
 
@@ -104,11 +106,30 @@ void Server::clientHandler(int clientSocket) {
         else {
             std::lock_guard<std::mutex> lock(bufferMutex);
             string username = userSocketMap.at(clientSocket)->name;
-            message = username + ":" + message;
-            messageBuffer.push(message);
+            Message formattedMessage = formatMessage(message, username);
+            messageBuffer.push(formattedMessage);
             bufferCV.notify_all();
         }
     }
+}
+
+Message Server::formatMessage(string message, string username) {
+    Message formattedMessage;
+    formattedMessage.content = message;
+    formattedMessage.sender = username;
+    formattedMessage.time = std::time(0);
+    formattedMessage.channel = [&username, this]() {
+        for (size_t i = 0; i < channelList.size(); i++) {
+            auto c = &channelList[i];
+            for (auto i : c->participants) {
+                if (i->name == username) {
+                    return c;
+                }
+            }
+        }
+        return &channelList[0];
+    }();
+    return formattedMessage;
 }
 
 /**
@@ -154,9 +175,12 @@ int Server::handleUnLoggedIn(std::string message, int clientSocket) {
         }
         string username = args.substr(0, spacePos);
         string password = args.substr(spacePos + 1);
-
+        if (user_map.find(username) != nullptr)
+            return -1;
         user_map[username] = User(username, clientSocket);
         userSocketMap[clientSocket] = &user_map[username];
+        channelList[0].participants.push_back(&user_map[username]);
+        sendMessage("SERVER:You have successfully logged in", clientSocket);
         return 1;
     } else if (command == "/register") {
         return -1;
