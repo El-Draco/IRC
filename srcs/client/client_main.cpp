@@ -16,36 +16,36 @@ using namespace std;
  *
  * @param c1    Pointer to client object
  */
-void receiveMessages(Client *c1, tui *UI) {
-  string message;
-  while (true) {
-    message = c1->recieveMessage();
-    UI->messageRecieved(message);
-  }
+void receiveMessages(Client *c1) {
+    string message;
+    while (true) {
+        message = c1->recieveMessage();
+        c1->UI.messageRecieved(message);
+    }
 }
 
 int main(int argc, char *argv[]) {
-  if (argc < 3) {
-    cerr << "Error: not enough arguements" << endl;
-    cerr << "Usage: irc_client [server address] [port number]" << endl;
-    exit(1);
-  }
-  tui UI;
+    if (argc < 3) {
+        cerr << "Error: not enough arguements" << endl;
+        cerr << "Usage: irc_client [server address] [port number]" << endl;
+        exit(1);
+    }
 
-  string ip = argv[1];
-  int port = atoi(argv[2]);
+    string ip = argv[1];
+    int port = atoi(argv[2]);
 
-  Client c1(ip, port);
+    Client c1(ip, port);
 
-  std::thread receiveThread(receiveMessages, &c1, &UI);
+    std::thread receiveThread(receiveMessages, &c1);
 
-  while (true) {
-    int message = UI.readInput();
-    if (message == 1) {
-      c1.sendMessage(UI.message_buffer);
-      UI.clearInput();
-    };
-    // UI.refresh();
-  }
-  return 0;
+    while (true) {
+        int message = c1.UI.readInput();
+        if (message == 1) {
+            c1.sendMessage(c1.UI.message_buffer);
+            c1.UI.clearInput();
+        };
+        // UI.refresh();
+    }
+    receiveThread.join();
+    return 0;
 }

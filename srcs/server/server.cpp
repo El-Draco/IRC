@@ -130,8 +130,8 @@ Message Server::formatMessage(string message, string username) {
     formattedMessage.channel = [&username, this]() {
         for (size_t i = 0; i < channelList.size(); i++) {
             auto c = &channelList[i];
-            for (auto i : c->participants) {
-                if (i->name == username) {
+            for (auto p : c->participants) {
+                if (p->name == username) {
                     return c;
                 }
             }
@@ -165,6 +165,7 @@ void Server::closeConnection(int clientSocket) {
                             clientSockets.end());
     }
     if (userSocketMap.find(clientSocket) != nullptr) {
+        user_map.erase(userSocketMap[clientSocket]->name);
         userSocketMap.erase(clientSocket);
     }
 }
@@ -184,8 +185,10 @@ int Server::handleUnLoggedIn(std::string message, int clientSocket) {
         }
         string username = args.substr(0, spacePos);
         string password = args.substr(spacePos + 1);
-        if (user_map.find(username) != nullptr)
+        if (user_map.find(username) != nullptr) {
+            sendMessage("ERROR:Username already in use!\n", clientSocket);
             return -1;
+        }
         user_map[username] = User(username, clientSocket);
         userSocketMap[clientSocket] = &user_map[username];
         channelList[0].participants.push_back(&user_map[username]);

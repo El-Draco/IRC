@@ -12,6 +12,7 @@ class tui {
     void messageRecieved(std::string message);
     std::string message_buffer;
     void clearInput();
+    void endWindow();
 
   private:
     int term_rows, term_cols;

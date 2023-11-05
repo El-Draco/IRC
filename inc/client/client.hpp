@@ -2,6 +2,7 @@
 #define CLIENT_HPP
 
 #include "../TCPSocket.hpp"
+#include "tui.hpp"
 #include <string>
 #include <thread>
 using namespace std;
@@ -14,6 +15,7 @@ class Client {
     Client(string ipAddress, int port);
     ~Client();
 
+    tui UI;
     int getClientSocket();
     void sendMessage(string message);
     string recieveMessage();

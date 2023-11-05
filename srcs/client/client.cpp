@@ -44,6 +44,8 @@ string Client::recieveMessage() {
     } catch (...) {
         cerr << "Server disconnected";
         clientSocket.closeConnection(clientSocket.getPassiveSocket());
+        // needed to gracefully close TUI without ruining the terminal
+        UI.endWindow();
         exit(-1);
     }
     return message;
