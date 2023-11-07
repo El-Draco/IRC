@@ -1,8 +1,9 @@
 #include "../../inc/client/tui.hpp"
+#include <csignal>
 #include <curses.h>
 #include <iostream>
 #include <ncurses.h>
-#include <string>
+#include <signal.h>
 
 tui::tui() {
     mainWindow = initscr();
@@ -16,6 +17,10 @@ tui::tui() {
     init_pair(2, COLOR_CYAN, -1);
     init_pair(3, COLOR_RED, -1);
     init_pair(4, COLOR_GREEN, -1);
+    drawWindow();
+}
+
+void tui::drawWindow() {
     getmaxyx(stdscr, term_rows, term_cols);
     chatWindowOuter = subwin(mainWindow, term_rows - 6, term_cols, 0, 0);
     inputWindowOuter = subwin(mainWindow, 6, term_cols, term_rows - 6, 0);
@@ -34,6 +39,13 @@ tui::tui() {
     wclear(inputWindowInner);
 
     wrefresh(mainWindow);
+}
+
+void tui::resize() {
+    endwin();
+    clear();
+    drawWindow();
+    wprintw(chatWindowInner, "RESIZED!\n");
 }
 
 void tui::refresh() {
@@ -75,7 +87,12 @@ int tui::readInput() {
         if (!message_buffer.empty())
             message_buffer.pop_back();
         wprintw(inputWindowInner, "\b \b");
+
+    } else if (ch == KEY_RESIZE) {
+        resize();
+        wrefresh(chatWindowInner);
     } else if (ch != '\n') {
+
         wprintw(inputWindowInner, "%c", char(ch));
         message_buffer.push_back(char(ch));
     } else if (ch == '\n') {

@@ -13,6 +13,8 @@ class tui {
     std::string message_buffer;
     void clearInput();
     void endWindow();
+    void drawWindow();
+    void resize();
 
   private:
     int term_rows, term_cols;
