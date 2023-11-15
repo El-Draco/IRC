@@ -165,8 +165,19 @@ void Server::closeConnection(int clientSocket) {
                             clientSockets.end());
     }
     if (userSocketMap.find(clientSocket) != nullptr) {
-        user_map.erase(userSocketMap[clientSocket]->name);
+        string username = userSocketMap[clientSocket]->name;
+        user_map.erase(username);
         userSocketMap.erase(clientSocket);
+        for (size_t i = 0; i < channelList.size(); i++) {
+            auto c = &channelList[i];
+            for (auto p = c->participants.begin(); p != c->participants.end();
+                 p++) {
+                if ((*p.base())->name == username) {
+                    c->participants.erase(p);
+                    return;
+                }
+            }
+        }
     }
 }
 
