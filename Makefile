@@ -1,7 +1,7 @@
 SERV_NAME	=	irc_server
 CLI_NAME	=	irc_client
 
-CXX			=	c++
+CXX			=	g++
 CXXFLAGS	=	-Wall -Wextra -lncurses
 RM			=	rm
 INC 		= 	inc/
