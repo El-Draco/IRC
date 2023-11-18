@@ -2,6 +2,7 @@
 #define CHANNEL_HPP
 
 #include "User.hpp"
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -12,6 +13,12 @@ class Channel {
     string name;
     std::vector<User *> participants;
     Channel(string _name);
+    Channel(Channel const &other);
+    Channel &operator=(Channel const &other);
+    void removeUser(string username);
+
+  protected:
+    mutable std::mutex participantMutex;
 };
 
 #endif

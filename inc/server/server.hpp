@@ -47,7 +47,7 @@ class Server {
     std::vector<int> clientSockets;
     std::vector<std::thread> clientThreads;
     std::queue<Message> messageBuffer;
-    std::mutex bufferMutex;
+    std::mutex bufferMutex, mapMutex;
     std::condition_variable bufferCV;
     std::thread broadcastThread;
 

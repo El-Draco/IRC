@@ -165,18 +165,13 @@ void Server::closeConnection(int clientSocket) {
                             clientSockets.end());
     }
     if (userSocketMap.find(clientSocket) != nullptr) {
+        std::lock_guard<std::mutex> lock(mapMutex);
         string username = userSocketMap[clientSocket]->name;
         user_map.erase(username);
         userSocketMap.erase(clientSocket);
         for (size_t i = 0; i < channelList.size(); i++) {
             auto c = &channelList[i];
-            for (auto p = c->participants.begin(); p != c->participants.end();
-                 p++) {
-                if ((*p.base())->name == username) {
-                    c->participants.erase(p);
-                    return;
-                }
-            }
+            c->removeUser(username);
         }
     }
 }
@@ -200,6 +195,8 @@ int Server::handleUnLoggedIn(std::string message, int clientSocket) {
             sendMessage("ERROR:Username already in use!\n", clientSocket);
             return -1;
         }
+
+        std::lock_guard<std::mutex> lock(bufferMutex);
         user_map[username] = User(username, clientSocket);
         userSocketMap[clientSocket] = &user_map[username];
         channelList[0].participants.push_back(&user_map[username]);
