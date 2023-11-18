@@ -12,7 +12,7 @@ OBJ_DIR 	= obj
 
 #relative to their respective directories
 COMM_SRCS	= 	TCPSocket.cpp
-SERV_SRCS	=	User.cpp channel.cpp server.cpp server_main.cpp
+SERV_SRCS	=	User.cpp channel.cpp commands.cpp server.cpp server_main.cpp
 CLI_SRCS	=	tui.cpp client.cpp client_main.cpp
 
 SERV_SRCS	:= ${addprefix server/, ${SERV_SRCS}}
