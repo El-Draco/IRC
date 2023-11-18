@@ -1,6 +1,7 @@
 #include "../../inc/server/server.hpp"
 #include "../../inc/server/channel.hpp"
 #include <arpa/inet.h>
+#include <cstdio>
 #include <cstring>
 #include <ctime>
 #include <functional>
@@ -29,6 +30,8 @@ Server::Server(std::string ipAddress, int port)
     broadcastThread = thread(&Server::broadcastHandler, this);
 
     channelList.push_back(Channel("general"));
+    channelList.push_back(Channel("cmp"));
+    channelList.push_back(Channel("other"));
 
     // read from config file: channel list
     running = true;
@@ -116,6 +119,8 @@ void Server::clientHandler(int clientSocket) {
     }
 }
 
+void Server::print(string message) { cout << message; }
+
 /**
  * @brief               Format a message into Message object
  *
@@ -127,17 +132,19 @@ Message Server::formatMessage(string message, string username) {
     formattedMessage.content = message;
     formattedMessage.sender = username;
     formattedMessage.time = std::time(0);
-    formattedMessage.channel = [&username, this]() {
+    formattedMessage.channel = [username, this]() {
         for (size_t i = 0; i < channelList.size(); i++) {
             auto c = &channelList[i];
             for (auto p : c->participants) {
                 if (p->name == username) {
+                    cout << "Found himmmm" << c->name << endl;
                     return c;
                 }
             }
         }
         return &channelList[0];
     }();
+    cout << formattedMessage.channel->name << endl;
     return formattedMessage;
 }
 
@@ -196,10 +203,10 @@ int Server::handleUnLoggedIn(std::string message, int clientSocket) {
             return -1;
         }
 
-        std::lock_guard<std::mutex> lock(bufferMutex);
+        std::lock_guard<std::mutex> lock(mapMutex);
         user_map[username] = User(username, clientSocket);
         userSocketMap[clientSocket] = &user_map[username];
-        channelList[0].participants.push_back(&user_map[username]);
+        channelList[0].addUser(&user_map[username]);
         sendMessage("SERVER:You have successfully logged in\n", clientSocket);
         handleCommand("/help ", clientSocket);
         return 1;
@@ -231,12 +238,33 @@ void Server::initCommands() {
         }
         sendMessage(channels, clientSocket);
     };
+    commandMap["/join"] = [this](string args, int clientSocket) {
+        User *user = userSocketMap[clientSocket];
+        bool added = false;
+        for (size_t i = 0; i < channelList.size(); i++) {
+            auto c = &channelList[i];
+            c->removeUser(user->name);
+
+            if (c->name == args) {
+                c->addUser(user);
+                added = true;
+                sendMessage("SERVER: You have joined " + args, clientSocket);
+            }
+        }
+        if (!added) {
+            sendMessage(
+                "ERROR:Invalid channel name, moved you to general channel.",
+                clientSocket);
+            channelList[0].addUser(user);
+        }
+
+        // sendMessage("SERVER:" + args, clientSocket);
+    };
 }
 
 bool Server::checkCommand(string message) {
     size_t spacePos = message.find(' ');
     string command = message.substr(0, spacePos);
-    cout << command;
     return commandMap.find(command) != nullptr;
 };
 

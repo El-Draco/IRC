@@ -41,6 +41,7 @@ class Server {
     Server(string ipAddress, int port);
 
     bool running = false;
+    void print(string message);
 
   protected:
     TCPSocket serverSocket;

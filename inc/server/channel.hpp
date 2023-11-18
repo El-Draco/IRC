@@ -16,6 +16,7 @@ class Channel {
     Channel(Channel const &other);
     Channel &operator=(Channel const &other);
     void removeUser(string username);
+    void addUser(User *user);
 
   protected:
     mutable std::mutex participantMutex;

@@ -1,4 +1,5 @@
 #include "../../inc/server/channel.hpp"
+#include <algorithm>
 #include <mutex>
 
 Channel::Channel(string _name) : name(_name) {}
@@ -23,12 +24,17 @@ Channel &Channel::operator=(Channel const &other) {
     return *this;
 }
 
+#include <iostream>
 void Channel::removeUser(string username) {
+    auto it = std::find_if(
+        participants.begin(), participants.end(),
+        [username](User *element) { return element->name == username; });
     std::lock_guard<std::mutex> lock(participantMutex);
-    for (auto p = participants.begin(); p != participants.end(); p++) {
-        if ((*p.base())->name == username) {
-            participants.erase(p);
-            return;
-        }
-    }
+    if (it != participants.end())
+        participants.erase(it);
+}
+
+void Channel::addUser(User *user) {
+    std::lock_guard<std::mutex> lock(participantMutex);
+    participants.push_back(user);
 }
