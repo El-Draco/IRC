@@ -1,4 +1,8 @@
 #include "../../inc/server/server.hpp"
+#include <mutex>
+// #include <fstream>
+// #include <sstream>
+// #include <string.h>
 
 int Server::handleUnLoggedIn(std::string message, int clientSocket) {
     size_t spacePos = message.find(' ');
@@ -8,27 +12,67 @@ int Server::handleUnLoggedIn(std::string message, int clientSocket) {
     }
     string command = message.substr(0, spacePos);
     string args = message.substr(spacePos + 1);
+    spacePos = args.find(' ');
+    if (spacePos == std::string::npos) {
+        return -1;
+    }
+    string username = args.substr(0, spacePos);
+    string password = args.substr(spacePos + 1);
+
     if (command == "/login") {
-        spacePos = args.find(' ');
-        if (spacePos == std::string::npos) {
-            return -1;
-        }
-        string username = args.substr(0, spacePos);
-        string password = args.substr(spacePos + 1);
         if (user_map.find(username) != nullptr) {
-            sendMessage("ERROR:Username already in use!\n", clientSocket);
+            sendMessage("ERROR:Already logged in on different client!\n",
+                        clientSocket);
             return -1;
         }
 
-        std::lock_guard<std::mutex> lock(mapMutex);
-        user_map[username] = User(username, clientSocket);
+        mapMutex.lock();
+        ifstream db("userDB.data");
+        string line, valUsername, valPassword, valRole;
+        Role theRole;
+        bool loggedIn = false;
+        while (getline(db, line)) {
+            stringstream ss(line);
+
+            getline(ss, valUsername, ',');
+            getline(ss, valPassword, ',');
+            getline(ss, valRole);
+            if (valUsername != username)
+                continue;
+            if (valPassword != password)
+                continue;
+            theRole = static_cast<Role>(stoi(valRole));
+            loggedIn = true;
+            break;
+        }
+        // find match in some file
+        mapMutex.unlock();
+
+        if (!loggedIn) {
+            sendMessage("ERROR:Invalid Credentials.\n", clientSocket);
+
+            return -1;
+        }
+
+        mapMutex.lock();
+        user_map[username] = User(username, clientSocket, theRole);
         userSocketMap[clientSocket] = &user_map[username];
         channelList[0].addUser(&user_map[username]);
-        sendMessage("SERVER:You have successfully logged in\n", clientSocket);
+        mapMutex.unlock();
+        sendMessage("SERVER:You have successfully logged in", clientSocket);
         handleCommand("/help ", clientSocket);
         return 1;
     } else if (command == "/register") {
-        return -1;
+        std::lock_guard<std::mutex> lock(mapMutex);
+        ofstream db("userDB.data", ios_base::app);
+        db << username << "," << password << "," << Role::USER << endl;
+        db.close();
+
+        sendMessage("SERVER:You have successfully registered! Use /login "
+                    "[username] [password] to login.\n",
+                    clientSocket);
+
+        return 2;
     } else {
         sendMessage("ERROR: You are not logged in!", clientSocket);
         return -1;
@@ -45,7 +89,9 @@ void Server::initCommands() {
         sendMessage("SERVER:Help:\n"
                     "/help : Prints this help message\n"
                     "/channels : Prints the available channels to join\n"
-                    "/join [channel] : Joins the specified channel",
+                    "/join [channel] : Joins the specified channel\n"
+                    "/private [username] [message] : Sends a private message "
+                    "to a user ",
                     clientSocket);
     };
     commandMap["/channels"] = [this](string, int clientSocket) {
@@ -79,7 +125,16 @@ void Server::initCommands() {
     };
     commandMap["/kick"] = [this](string args, int clientSocket) {
         if (userSocketMap[clientSocket]->role != USER) {
+            sendMessage("SERVER:You are admin", clientSocket);
+            if (user_map.find(args) != nullptr) {
+                broadcastMessage(formatMessage(
+                    "User " + args + " has been kicked.", "SERVER"));
+                closeConnection(user_map.find(args)->second.clientSocket);
+            } else {
+                sendMessage("ERROR:No such user " + args, clientSocket);
+            }
         } else {
+            sendMessage("ERROR:You are not permitted to kick.", clientSocket);
         }
     };
     commandMap["/private"] = [this](string args, int clientSocket) {

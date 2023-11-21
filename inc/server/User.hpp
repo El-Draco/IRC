@@ -12,7 +12,7 @@ class User {
     int clientSocket;
 
     User();
-    User(std::string _username, int _clientSocket);
+    User(std::string _username, int _clientSocket, Role _role);
 };
 
 #endif

@@ -7,8 +7,8 @@ User::User(){
 
 };
 
-User::User(string _username, int _clientSocket)
-{
+User::User(string _username, int _clientSocket, Role _role) {
     name = _username;
     clientSocket = _clientSocket;
+    role = _role;
 }

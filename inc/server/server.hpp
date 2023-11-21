@@ -11,6 +11,7 @@
 // #include <openssl/rsa.h>
 #include "../../inc/TCPSocket.hpp"
 #include <queue>
+#include <shared_mutex>
 #include <string>
 #include <sys/socket.h>
 #include <thread>
@@ -55,6 +56,7 @@ class Server {
     int handleMessage(std::string message);
     Message formatMessage(string message, string username);
     void sendMessage(std::string message, int clientSocket);
+    void broadcastMessage(Message message);
     void closeConnection(int clientSocket);
 
     std::unordered_map<string, std::function<void(string, int)>> commandMap;
@@ -62,7 +64,8 @@ class Server {
     bool checkCommand(string message);
     void handleCommand(string message, int clientSocket);
 
-    const string motd = "SERVER:Login using /login [username] [password]";
+    const string motd = "SERVER:Login using /login [username] [password]\n "
+                        "Register using /register [username] [password]";
 };
 
 #endif

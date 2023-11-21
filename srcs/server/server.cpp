@@ -110,14 +110,18 @@ void Server::clientHandler(int clientSocket) {
         }
         // user is registered, push message to queue
         else {
-            std::lock_guard<std::mutex> lock(bufferMutex);
             string username = userSocketMap.at(clientSocket)->name;
             Message formattedMessage = formatMessage(message, username);
-            messageBuffer.push(formattedMessage);
-            bufferCV.notify_all();
+            broadcastMessage(formattedMessage);
         }
     }
 }
+
+void Server::broadcastMessage(Message formattedMessage) {
+    std::lock_guard<std::mutex> lock(bufferMutex);
+    messageBuffer.push(formattedMessage);
+    bufferCV.notify_all();
+};
 
 /**
  * @brief               Format a message into Message object
