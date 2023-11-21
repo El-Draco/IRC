@@ -77,6 +77,23 @@ void Server::initCommands() {
 
         // sendMessage("SERVER:" + args, clientSocket);
     };
+    commandMap["/kick"] = [this](string args, int clientSocket) {
+        if (userSocketMap[clientSocket]->role != USER) {
+        } else {
+        }
+    };
+    commandMap["/private"] = [this](string args, int clientSocket) {
+        size_t spacePos = args.find(' ');
+        string user = args.substr(0, spacePos);
+        string msg = args.substr(spacePos + 1);
+        msg = userSocketMap[clientSocket]->name + " (private):" + msg;
+        if (user_map.find(user) != nullptr) {
+            int sock = user_map.find(user)->second.clientSocket;
+            sendMessage(msg, sock);
+        } else {
+            sendMessage("ERROR:Could not find user: " + user, clientSocket);
+        }
+    };
 }
 
 bool Server::checkCommand(string message) {

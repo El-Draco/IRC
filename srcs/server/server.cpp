@@ -135,14 +135,12 @@ Message Server::formatMessage(string message, string username) {
             auto c = &channelList[i];
             for (auto p : c->participants) {
                 if (p->name == username) {
-                    cout << "Found himmmm" << c->name << endl;
                     return c;
                 }
             }
         }
         return &channelList[0];
     }();
-    cout << formattedMessage.channel->name << endl;
     return formattedMessage;
 }
 
