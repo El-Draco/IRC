@@ -2,8 +2,9 @@ SERV_NAME	=	irc_server
 CLI_NAME	=	irc_client
 
 CXX			=	g++
-CXXFLAGS	=	-Wall -Wextra -lncurses
+CXXFLAGS	=	-Wall -Wextra
 RM			=	rm
+LINK = -lncurses
 INC 		= 	inc/
 
 SRC_DIR 	= srcs
@@ -33,7 +34,7 @@ $(BIN_DIR)/$(SERV_NAME):	$(SERV_OBJS) $(COMM_OBJS)
 	${CXX} ${CXXFLAGS} $(SERV_OBJS) $(COMM_OBJS) -o $(BIN_DIR)/$(SERV_NAME)
 
 $(BIN_DIR)/$(CLI_NAME):	$(CLI_OBJS) $(COMM_OBJS)
-	${CXX} ${CXXFLAGS} $(CLI_OBJS) $(COMM_OBJS) -o $(BIN_DIR)/$(CLI_NAME)
+	${CXX} ${CXXFLAGS} $(CLI_OBJS) $(COMM_OBJS) -o $(BIN_DIR)/$(CLI_NAME) $(LINK)
 
 $(OBJ_DIR)/%.o:	$(SRC_DIR)/%.cpp
 	${CXX} ${CXXFLAGS} -I${INC} -g -c $^ -o $@
