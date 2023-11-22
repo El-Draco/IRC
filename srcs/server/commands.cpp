@@ -125,10 +125,12 @@ void Server::initCommands() {
     };
     commandMap["/kick"] = [this](string args, int clientSocket) {
         if (userSocketMap[clientSocket]->role != USER) {
-            sendMessage("SERVER:You are admin", clientSocket);
             if (user_map.find(args) != nullptr) {
                 broadcastMessage(formatMessage(
                     "User " + args + " has been kicked.", "SERVER"));
+                sendMessage("SERVER:You have been kicked. Enter a message or "
+                            "Ctrl-C to quit.",
+                            user_map.find(args)->second.clientSocket);
                 closeConnection(user_map.find(args)->second.clientSocket);
             } else {
                 sendMessage("ERROR:No such user " + args, clientSocket);
