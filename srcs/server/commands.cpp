@@ -90,6 +90,7 @@ void Server::initCommands() {
                     "/help : Prints this help message\n"
                     "/channels : Prints the available channels to join\n"
                     "/join [channel] : Joins the specified channel\n"
+                    "/list : Lists all connected users\n"
                     "/private [username] [message] : Sends a private message "
                     "to a user ",
                     clientSocket);
@@ -150,6 +151,13 @@ void Server::initCommands() {
         } else {
             sendMessage("ERROR:Could not find user: " + user, clientSocket);
         }
+    };
+    commandMap["/list"] = [this](string, int clientSocket) {
+        string list = "SERVER: Current user list\n";
+        for (auto user : user_map) {
+            list += user.first + "\n";
+        }
+        sendMessage(list, clientSocket);
     };
 }
 
